@@ -1,4 +1,7 @@
 <?php
+/**
+ * Copyright (c) vdeApps 2018
+ */
 
 namespace vdeApps\phpCore;
 
