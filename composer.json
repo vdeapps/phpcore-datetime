@@ -1,0 +1,50 @@
+{
+    "name": "vdeapps/phpcore-datetime",
+    "type": "library",
+    "description": "Manage Datetime with opened/closed days",
+    "keywords": [
+        "vdeapps",
+        "library",
+        "datetime"
+    ],
+    "homepage": "https://github.com/vdeapps/phpcore-datetime",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "vdeApps",
+            "email": "vdeapps@riseup.net",
+            "homepage": "https://github.com/vdeapps/phpcore-datetime",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "vdeapps@riseup.net",
+        "issues": "https://github.com/vdeapps/phpcore-datetime/issues"
+    },
+    "config": {
+        "platform": {
+            "php": "7.0.00"
+        }
+    },
+    "require": {
+        "php": ">=5.5.9"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "3.*"
+    },
+    "suggest": {
+    },
+    "autoload": {
+        "psr-4": {
+            "vdeApps\\phpCore\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "": "tests/"
+        }
+    },
+    "scripts": {
+        "cs-fix": "php-cs-fixer fix . --fixers=-psr0"
+    }
+}
