@@ -5,6 +5,8 @@
 
 namespace vdeApps\phpCore;
 
+use vdeApps\phpCore\Is as awcIs;
+
 class Datetime
 {
     const REGEX_SQL = "/(?<fulldate>(?<Y>\d{4})(-)*(?<M>\d{2})(-)*(?<D>\d{2}))(( ){1}(?<fulltime>(?<h>\d{2}):(?<m>\d{2})(:(?<s>\d{2})){0,1}(:(\d{2})){0,1})){0,1}/";
