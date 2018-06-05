@@ -23,7 +23,7 @@
     },
     "config": {
         "platform": {
-            "php": "7.0.00"
+            "php": "5.6.99"
         }
     },
     "require": {
