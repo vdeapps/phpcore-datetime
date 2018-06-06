@@ -27,8 +27,7 @@
         }
     },
     "require": {
-        "php": ">=5.5.9",
-        "vdeapps/phpcore-is": "^1.0"
+        "php": ">=5.5.9"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "3.*"

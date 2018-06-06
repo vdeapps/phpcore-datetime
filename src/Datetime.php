@@ -5,8 +5,6 @@
 
 namespace vdeApps\phpCore;
 
-use vdeApps\phpCore\Is as awcIs;
-
 class Datetime
 {
     const REGEX_SQL = "/(?<fulldate>(?<Y>\d{4})(-)*(?<M>\d{2})(-)*(?<D>\d{2}))(( ){1}(?<fulltime>(?<h>\d{2}):(?<m>\d{2})(:(?<s>\d{2})){0,1}(:(\d{2})){0,1})){0,1}/";
@@ -66,11 +64,11 @@ class Datetime
     }
     
     /**
-     * Met � jour le timestamp
+     * Met à jour le timestamp
      *
      * @param int $ts
      *
-     * @return awcDatetime
+     * @return false|Datetime
      */
     public function set_timestamp($ts = null)
     {
@@ -99,13 +97,13 @@ class Datetime
     /*
      * SETTER
      */
-
+    
     /**
      * Recalcul les jours f�ri�s de l'ann�e cDateTime
      *
      * @param int $year
      *
-     * @return awcDatetime
+     * @return Datetime
      */
     public function set_joursferies($year)
     {
@@ -145,7 +143,7 @@ class Datetime
      *
      * @param int $year
      *
-     * @return timestamp
+     * @return false|integer
      */
     public static function get_easter_date($year = null)
     {
@@ -165,7 +163,7 @@ class Datetime
      *
      * @param string|int|null $date (format: YYYY-MM-DD[ h:m:s] ou YYYYMMDD ou timestamp ou current time si date=null)
      *
-     * @return awcDatetime
+     * @return false|Datetime
      */
     public function set_date($date = null)
     {
@@ -177,11 +175,15 @@ class Datetime
             $this->set_timestamp($date);
             
             return $this;
+        } elseif (is_a($date, self::class)) {
+            /** @var Datetime $date */
+            return $this->set_date($date->format());
         } elseif (preg_match(self::REGEX_SQL, $date, $dateSplitted)) {
             if (\checkdate($dateSplitted['M'], $dateSplitted['D'], $dateSplitted['Y'])) {
-                $h = awcIs::PARAM($dateSplitted, 'h', "is_numeric", 0);
-                $m = awcIs::PARAM($dateSplitted, 'm', "is_numeric", 0);
-                $s = awcIs::PARAM($dateSplitted, 's', "is_numeric", 0);
+                
+                $h = (array_key_exists('h',$dateSplitted) && is_numeric($dateSplitted['h'])) ? $dateSplitted['h'] : 0;
+                $m = (array_key_exists('m',$dateSplitted) && is_numeric($dateSplitted['m'])) ? $dateSplitted['m'] : 0;
+                $s = (array_key_exists('s',$dateSplitted) && is_numeric($dateSplitted['s'])) ? $dateSplitted['s'] : 0;
                 
                 $mkt = mktime($h, $m, $s, $dateSplitted['M'], $dateSplitted['D'], $dateSplitted['Y']);
                 $this->set_timestamp($mkt);
@@ -192,9 +194,9 @@ class Datetime
             }
         } elseif (preg_match(self::REGEX_STR, $date, $dateSplitted)) {
             if (\checkdate($dateSplitted['M'], $dateSplitted['D'], $dateSplitted['Y'])) {
-                $h = awcIs::PARAM($dateSplitted, 'h', "is_numeric", 0);
-                $m = awcIs::PARAM($dateSplitted, 'm', "is_numeric", 0);
-                $s = awcIs::PARAM($dateSplitted, 's', "is_numeric", 0);
+                $h = (array_key_exists('h',$dateSplitted) && is_numeric($dateSplitted['h'])) ? $dateSplitted['h'] : 0;
+                $m = (array_key_exists('m',$dateSplitted) && is_numeric($dateSplitted['m'])) ? $dateSplitted['m'] : 0;
+                $s = (array_key_exists('s',$dateSplitted) && is_numeric($dateSplitted['s'])) ? $dateSplitted['s'] : 0;
                 
                 $mkt = mktime($h, $m, $s, $dateSplitted['M'], $dateSplitted['D'], $dateSplitted['Y']);
                 $this->set_timestamp($mkt);
@@ -208,15 +210,35 @@ class Datetime
         return false;
     }
     
-    static function getInstance($timestamp = null)
+    /**
+     * Retourne la date suivant le $format
+     *
+     * @param string $format (default:'DD/MM/YYYY')
+     *
+     * @return false|string
+     */
+    public function format($format = '%d/%m/%Y')
     {
+        if ($this->time == null) {
+            return false;
+        }
         
-        return new self($timestamp);
+        return strftime($format, $this->time);
     }
     
     /*
      * CALCUL
      */
+    
+    /**
+     * @param null|integer|string|Datetime $timestamp
+     *
+     * @return Datetime
+     */
+    public static function getInstance($timestamp = null)
+    {
+        return new self($timestamp);
+    }
     
     /**
      * Retourne l'ann�e et mois format�s
@@ -310,7 +332,7 @@ class Datetime
      * Retourne un tableau contenant la liste de aaaamm jusqu'� aaaamm-nb_mois
      *
      * @param integer $aaaamm
-     * @param number  $nb_mois default 12
+     * @param int     $nb_mois default 12
      *
      * @return array
      */
@@ -344,60 +366,22 @@ class Datetime
         return array_reverse($aperiode);
     }
     
-    public static function options_annee($selected = null, $start = _AAAA_, $end = _AAAA_, $firstRow = ['0' => ''])
-    {
-        $htmlListe = new awcHtmlListe();
-        $anneesListe = [];
-        if ($end < $start) {
-            for ($annee = $start; $annee >= $end; $annee--) {
-                $anneesListe[$annee] = $annee;
-            }
-        } else {
-            for ($annee = $start; $annee <= $end; $annee++) {
-                $anneesListe[$annee] = $annee;
-            }
-        }
-        $htmlListe->setbyArray($anneesListe);
-        
-        if (!empty($firstRow)) {
-            $htmlListe->unshift($firstRow);
-        }
-        
-        return $htmlListe->html_option($selected);
-    }
-    
-    /*
-     * TESTS
-     */
-    
-    public static function options_mois($selected = null, $firstRow = ['0' => ''])
-    {
-        $htmlListe = new awcHtmlListe();
-        $htmlListe->setbyArray(self::$array_mois);
-        
-        if (!empty($firstRow)) {
-            $htmlListe->unshift($firstRow);
-        }
-        
-        return $htmlListe->html_option($selected);
-    }
-    
     /**
      * Calcule le nombre de jours entre 2 dates
      *
-     * @param numeric $startDate   Date de d�but au format timestamp
-     * @param numeric $endDate     Date de fin au format timestamp
-     * @param boolean $joursOuvres D�finit si jours ouvr�s ou calendaires
+     * @param integer $startDate   Date de début au format timestamp
+     * @param integer $endDate     Date de fin au format timestamp
+     * @param boolean $joursOuvres Définit si jours ouvr�s ou calendaires
      *
-     * @return le nombre de jours entre les 2 dates ou FALSE si une des 2 dates n'est pas un timestamp
+     * @return false|integer Nombre de jours entre les 2 dates ou FALSE si une des 2 dates n'est pas un timestamp
      */
     public static function getNbJours($startDate = null, $endDate = null, $joursOuvres = true)
     {
         $nbJours = false;
-        if (awcIs::numeric($startDate) && awcIs::numeric($endDate)) {
-            $start = new awcDatetime($startDate);
+        if (is_numeric($startDate) && is_numeric($endDate)) {
+            $start = new Datetime($startDate);
             $start->set_jours_ouvres($joursOuvres);
-            $end = new awcDatetime($endDate);
+            $end = new Datetime($endDate);
             $end->set_jours_ouvres($joursOuvres);
             $nbJours = ($joursOuvres) ? $start->diff($end)->jo : $start->diff($end)->j;
         }
@@ -406,7 +390,205 @@ class Datetime
     }
     
     /**
-     * Retourne l'ann�e et semaine depuis une date
+     * Set Flag pour le calcul sur jours ouvr�s
+     *
+     * @param boolean $boolean
+     *
+     * @return Datetime
+     */
+    public function set_jours_ouvres($boolean = true)
+    {
+        $this->flag_jours_ouvres = $boolean;
+        
+        return $this;
+    }
+    
+    /*
+     * GETTER
+     */
+    
+    /**
+     * Retourne le delai entre 2 date en jours
+     *
+     * @param Datetime $objcDateTime
+     *
+     * @return bool|object [j,jo]
+     */
+    public function diff($objcDateTime = null)
+    {
+        if ($this->time == null || $objcDateTime == null || $objcDateTime->time == null) {
+            return false;
+        }
+        
+        /*
+         * On recopie l'objet
+        */
+        $d = clone $this;
+        $objcDateTime_clone = clone $objcDateTime;
+        
+        // Test si on calcul les jours ouvr�s
+        $flag_jours_ouvres = ($d->flag_jours_ouvres | $objcDateTime_clone->flag_jours_ouvres) ? true : false;
+        
+        $objdiff = (object)[];
+        $objdiff->j = 0;
+        $objdiff->jo = 0;
+        $signe = 1; //Delai positif ou negatif
+        
+        //Si la date est la m�me
+        $equal_date = $d->equals($objcDateTime_clone);
+        if ($equal_date == 0) {
+            $objdiff->j = 1;
+            
+            // Jour ouvr�
+            if ($flag_jours_ouvres && $objcDateTime_clone->est_jours_ouvres()) {
+                $objdiff->jo = 1;
+            }
+            
+            return $objdiff;
+        }
+        
+        /*
+         * Inverse les dates si elles ne sont pas ordonn�es
+         */
+        $d_start = $d_end = null;
+        if ($equal_date < 0) {
+            $d_start = $d;
+            $d_end = $objcDateTime_clone;
+        } else {
+            $signe = -1;
+            $d_start = $objcDateTime_clone;
+            $d_end = $d;
+        }
+        
+        //On retire le flag jours ouvr�es pour que le add_days ne saute pas de jours
+        $d_start->set_jours_ouvres(false);
+        $d_end->set_jours_ouvres(false);
+        
+        while ($d_start->equals($d_end) <= 0) {
+            $objdiff->j++;
+            if ($flag_jours_ouvres && $d_start->est_jours_ouvres()) {
+                $objdiff->jo++;
+            }
+            
+            $d_start->add_days(1);
+        }
+        
+        $objdiff->j *= $signe;
+        $objdiff->jo *= $signe;
+        
+        return $objdiff;
+    }
+    
+    /**
+     * Test si 2 cDateTime sont identiques
+     *
+     * @param Datetime $objcDateTime
+     *
+     * @return boolean|integer
+     */
+    public function equals($objcDateTime = null)
+    {
+        if ($objcDateTime == null) {
+            return false;
+        }
+        
+        $diff_year = $this->adate['year'] - $objcDateTime->adate['year'];
+        $diff_mon = $this->adate['mon'] - $objcDateTime->adate['mon'];
+        $diff_day = $this->adate['mday'] - $objcDateTime->adate['mday'];
+        
+        if ($diff_year > 0) {
+            return 1;
+        } elseif ($diff_year < 0) {
+            return -1;
+        } elseif ($diff_mon > 0) {
+            return 1;
+        } elseif ($diff_mon < 0) {
+            return -1;
+        } elseif ($diff_day > 0) {
+            return 1;
+        } elseif ($diff_day < 0) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+    
+    /**
+     * Test si la date est un jour ouvr�
+     * @return boolean
+     */
+    public function est_jours_ouvres()
+    {
+        $aaaammdd = $this->format('%Y%m%d');
+        $dayofweek = $this->adate['wday'];
+        
+        //Samedi et Dimanche
+        if ($dayofweek == 0 || $dayofweek == 6 || isset($this->joursferies["$aaaammdd"])) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Ajoute nb jours
+     *
+     * @param int $days
+     *
+     * @return Datetime
+     */
+    public function add_days($days)
+    {
+        
+        if ($days < 0) {
+            return $this->sub_days($days * -1);
+        }
+        
+        if ($this->flag_jours_ouvres == true) {
+            for ($d = 0; $d < $days;) {
+                $this->time += self::$TIME2SEC['d'];
+                $this->set_timestamp($this->time);
+                
+                if ($this->est_jours_ouvres()) {
+                    $d++;
+                }
+            }
+        } else {
+            $this->time += $days * self::$TIME2SEC['d'];
+            $this->set_timestamp($this->time);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Retranche nb jours
+     *
+     * @param int $days
+     *
+     * @return Datetime
+     */
+    public function sub_days($days)
+    {
+        if ($this->flag_jours_ouvres == true) {
+            for ($d = $days; $d > 0;) {
+                $this->time -= self::$TIME2SEC['d'];
+                $this->set_timestamp($this->time);
+                
+                if ($this->est_jours_ouvres()) {
+                    $d--;
+                }
+            }
+        } else {
+            $this->time -= $days * self::$TIME2SEC['d'];
+            $this->set_timestamp($this->time);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Retourne l'année et semaine depuis une date
      *
      * @param string $date format: YYYY-MM-DD, DD/MM/YYYY, YYYY/S01
      *
@@ -418,26 +600,22 @@ class Datetime
             return false;
         }
         
-        return date("o/\SW", strtotime(awcDatetime::date2sql($date)));
+        return date("o/\SW", strtotime(Datetime::date2sql($date)));
     }
     
     /**
      * Retourne une date jj/mm/aaaa ou 2015/S01 au format aaaa-mm-jj
      *
-     * @param unknown_type $date
+     * @param mixed $date
      *
      * @return string
      */
     public static function date2sql($date)
     {
-        $dt = new self();
+        $dt = new Datetime();
         
         return ($dt->set_date($date)) ? $dt->toSql() : false;
     }
-    
-    /*
-     * GETTER
-     */
     
     /**
      * Retourne la date au format SQL
@@ -509,6 +687,8 @@ class Datetime
      *
      * @param string $datetime
      *
+     * @param string $separator default('à') separator between date and hour
+     *
      * @return string
      */
     public static function sql2datetime($datetime = null, $separator = ' à ')
@@ -519,7 +699,9 @@ class Datetime
     /**
      * Converti une date au format str
      *
-     * @param $date
+     * @param mixed  $date
+     *
+     * @param string $format
      *
      * @return string|null
      */
@@ -540,7 +722,7 @@ class Datetime
      * @param string $date   (YYYY/MM/DD | YY-MM-DD | YYYYMMDD ...)
      * @param string $format (default:'DD/MM/YYYY')
      *
-     * @return timestamp
+     * @return boolean|integer
      */
     public static function valid_date($date = null, $format = 'DD/MM/YYYY')
     {
@@ -573,6 +755,9 @@ class Datetime
                 return false;
             }
         }
+        else{
+            return false;
+        }
     }
     
     /**
@@ -590,233 +775,11 @@ class Datetime
     }
     
     /**
-     * Retourne le delai entre 2 date en jours
-     *
-     * @param cDateTime $objcDateTime
-     *
-     * @return array(j, jo)
-     */
-    public function diff($objcDateTime = null)
-    {
-        if ($this->time == null || $objcDateTime == null || $objcDateTime->time == null) {
-            return false;
-        }
-        
-        /*
-         * On recopie l'objet
-        */
-        $d = clone $this;
-        $objcDateTime_clone = clone $objcDateTime;
-        
-        // Test si on calcul les jours ouvr�s
-        $flag_jours_ouvres = ($d->flag_jours_ouvres | $objcDateTime_clone->flag_jours_ouvres) ? true : false;
-        
-        $objdiff = (object)[];
-        $objdiff->j = 0;
-        $objdiff->jo = 0;
-        $signe = 1; //Delai positif ou negatif
-        
-        //Si la date est la m�me
-        $equal_date = $d->equals($objcDateTime_clone);
-        if ($equal_date == 0) {
-            $objdiff->j = 1;
-            
-            // Jour ouvr�
-            if ($flag_jours_ouvres && $objcDateTime_clone->est_jours_ouvres()) {
-                $objdiff->jo = 1;
-            }
-            
-            return $objdiff;
-        }
-        
-        /*
-         * Inverse les dates si elles ne sont pas ordonn�es
-         */
-        $d_start = $d_end = null;
-        if ($equal_date < 0) {
-            $d_start = $d;
-            $d_end = $objcDateTime_clone;
-        } else {
-            $signe = -1;
-            $d_start = $objcDateTime_clone;
-            $d_end = $d;
-        }
-        
-        //On retire le flag jours ouvr�es pour que le add_days ne saute pas de jours
-        $d_start->set_jours_ouvres(false);
-        $d_end->set_jours_ouvres(false);
-        
-        //      echo '-----<br>';
-        while ($d_start->equals($d_end) <= 0) {
-            //          echo $d_start->format().' - '.$d_end->format().'<br>';
-            
-            $objdiff->j++;
-            if ($flag_jours_ouvres && $d_start->est_jours_ouvres()) {
-                $objdiff->jo++;
-            }
-            
-            $d_start->add_days(1);
-            
-            //          ob_end_flush();
-            //          flush();
-        }
-        //      echo '-----<br>';
-        
-        $objdiff->j *= $signe;
-        $objdiff->jo *= $signe;
-        
-        return $objdiff;
-    }
-    
-    /**
-     * Test si 2 cDateTime sont identiques
-     *
-     * @param unknown_type $objcDateTime
-     *
-     * @return boolean
-     */
-    public function equals($objcDateTime = null)
-    {
-        if ($objcDateTime == null) {
-            return false;
-        }
-        
-        $diff_year = $this->adate['year'] - $objcDateTime->adate['year'];
-        $diff_mon = $this->adate['mon'] - $objcDateTime->adate['mon'];
-        $diff_day = $this->adate['mday'] - $objcDateTime->adate['mday'];
-        
-        if ($diff_year > 0) {
-            return 1;
-        } elseif ($diff_year < 0) {
-            return -1;
-        } elseif ($diff_mon > 0) {
-            return 1;
-        } elseif ($diff_mon < 0) {
-            return -1;
-        } elseif ($diff_day > 0) {
-            return 1;
-        } elseif ($diff_day < 0) {
-            return -1;
-        } else {
-            return 0;
-        }
-    }
-    
-    /**
-     * Set Flag pour le calcul sur jours ouvr�s
-     *
-     * @param boolean $boolean
-     *
-     * @return $boolean
-     */
-    public function set_jours_ouvres($boolean = true)
-    {
-        $this->flag_jours_ouvres = $boolean;
-        
-        return $this;
-    }
-    
-    /**
-     * Test si la date est un jour ouvr�
-     * @return boolean
-     */
-    public function est_jours_ouvres()
-    {
-        $aaaammdd = $this->format('Ymd');
-        $dayofweek = $this->adate['wday'];
-        
-        //echo "JO($aaaammdd;$dayofweek;". (isset($this->joursferies["$aaaammdd"])?'jf':'nf') . ')<br/>';
-        
-        //Samedi et Dimanche
-        if ($dayofweek == 0 || $dayofweek == 6 || isset($this->joursferies["$aaaammdd"])) {
-            //          echo "JO($aaaammdd;$dayofweek;". (isset($this->joursferies["$aaaammdd"])?'jf':'nf') . ')<br/>';
-            return false;
-        } else {
-            //          echo "JO($aaaammdd;Semaine)<br/>";
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Retourne la date suivant le $format
-     *
-     * @param string $format (default:'DD/MM/YYYY')
-     *
-     * @return string | timestamp
-     */
-    public function format($format = '%d/%m/%Y')
-    {
-        if ($this->time == null) {
-            return false;
-        }
-        
-        return strftime($format, $this->time);
-    }
-    
-    /**
-     * Ajoute nb jours
-     *
-     * @param int $days
-     *
-     * @return awcDatetime
-     */
-    public function add_days($days)
-    {
-        
-        if ($days < 0) {
-            return $this->sub_days($days * -1);
-        }
-        
-        if ($this->flag_jours_ouvres == true) {
-            for ($d = 0; $d < $days;) {
-                $this->time += self::$TIME2SEC['d'];
-                $this->set_timestamp($this->time);
-                
-                if ($this->est_jours_ouvres()) {
-                    $d++;
-                }
-            }
-        } else {
-            $this->time += $days * self::$TIME2SEC['d'];
-            $this->set_timestamp($this->time);
-        }
-        
-        return $this;
-    }
-    
-    /**
-     * Retranche nb jours
-     *
-     * @param int $days
-     *
-     * @return awcDatetime
-     */
-    public function sub_days($days)
-    {
-        if ($this->flag_jours_ouvres == true) {
-            for ($d = $days; $d > 0;) {
-                $this->time -= self::$TIME2SEC['d'];
-                $this->set_timestamp($this->time);
-                
-                if ($this->est_jours_ouvres()) {
-                    $d--;
-                }
-            }
-        } else {
-            $this->time -= $days * self::$TIME2SEC['d'];
-            $this->set_timestamp($this->time);
-        }
-        
-        return $this;
-    }
-    
-    /**
      * Ajoute nb heures
      *
      * @param int $hours
      *
-     * @return awcDatetime
+     * @return Datetime
      */
     public function add_hours($hours)
     {
@@ -831,7 +794,7 @@ class Datetime
      *
      * @param int $min
      *
-     * @return awcDatetime
+     * @return Datetime
      */
     public function add_min($min)
     {
@@ -846,7 +809,7 @@ class Datetime
      *
      * @param int $months
      *
-     * @return awcDatetime
+     * @return Datetime
      */
     public function add_month($months)
     {
@@ -861,7 +824,7 @@ class Datetime
      *
      * @param int $months
      *
-     * @return awcDatetime
+     * @return Datetime
      */
     public function sub_month($months)
     {
@@ -877,7 +840,7 @@ class Datetime
      */
     public function est_bissextile()
     {
-        return $this->format('L');
+        return (date('L', $this->get_ts()) === '1');
     }
     
     /*
@@ -899,7 +862,7 @@ class Datetime
             return false;
         }
         
-        return $this->format('Y');
+        return $this->adate['year'];
     }
     
     public function get_month()
@@ -908,7 +871,7 @@ class Datetime
             return false;
         }
         
-        return $this->format('m');
+        return $this->adate['mon'];
     }
     
     public function get_day()
@@ -917,7 +880,7 @@ class Datetime
             return false;
         }
         
-        return $this->format('d');
+        return $this->adate['mday'];
     }
     
     /**
@@ -930,7 +893,7 @@ class Datetime
             return false;
         }
         
-        return $this->format('W');
+        return $this->format('%W');
     }
     
     /**
@@ -943,7 +906,7 @@ class Datetime
             return false;
         }
         
-        return $this->format('z');
+        return $this->format('%j');
     }
     
     /**
