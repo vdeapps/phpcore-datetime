@@ -81,5 +81,25 @@ class DatetimeTest extends TestCase
         $this->assertEquals(128, $o->get_dayofyear());
     
         $this->assertEquals('2018/S19', Datetime::date2sem($o));
+        
+        
+        /*
+         * Test date SEMAINE
+         */
+        $o->set_date('2018/S06');
+        $this->assertEquals('2018-02-05', $o->format('%Y-%m-%d'));
+    
+        $o->set_date('2018/S01');
+        $this->assertEquals('2018-01-01', $o->format('%Y-%m-%d'));
+        
+        $o->set_date('2018/S52');
+        $this->assertEquals('2018-12-24', $o->format('%Y-%m-%d'));
+    
+        $o->set_date('2020/S53');
+        $this->assertEquals('2020-12-28', $o->format('%Y-%m-%d'));
+    
+        $o->set_date('2021/S01');
+        $this->assertEquals('2021-01-04', $o->format('%Y-%m-%d'));
     }
 }
+
