@@ -8,8 +8,8 @@ namespace vdeApps\phpCore;
 class Datetime
 {
     const REGEX_SQL = "/(?<fulldate>(?<Y>\d{4})(-)*(?<M>\d{2})(-)*(?<D>\d{2}))(( ){1}(?<fulltime>(?<h>\d{2}):(?<m>\d{2})(:(?<s>\d{2})){0,1}(:(\d{2})){0,1})){0,1}/";
-    const REGEX_STR = "/(?<fulldate>(?<D>\d{2})(\/)*(?<M>\d{2})(\/)*(?<Y>\d{4}))(( ){1}(?<fulltime>(?<h>\d{2}):(?<m>\d{2})(:(?<s>\d{2})){0,1}(:(\d{2})){0,1})){0,1}/";
-    static $longday = [
+    const REGEX_STR = "/(?<fulldate>(?<D>\d{1,2})(\/)*(?<M>\d{1,2})(\/)*(?<Y>\d{4}))(( ){1}(?<fulltime>(?<h>\d{2}):(?<m>\d{2})(:(?<s>\d{2})){0,1}(:(\d{2})){0,1})){0,1}/";
+    public static $longday = [
         'Monday'    => 'Lundi',
         'Tuesday'   => 'Mardi',
         'Wednesday' => 'Mercredi',
@@ -18,7 +18,7 @@ class Datetime
         'Saturday'  => 'Samedi',
         'Sunday'    => 'Dimanche',
     ];
-    static $shortday = [
+    public static $shortday = [
         'Monday'    => 'Lun',
         'Tuesday'   => 'Mar',
         'Wednesday' => 'Mer',
@@ -36,16 +36,17 @@ class Datetime
      * m: minute
      * s: seconde
      */
-    static $TIME2SEC = ['w' => 604800, 'd' => 86400, 'h' => 3600, 'm' => 60, 's' => 1];
-    static $array_mois = [1 => 'Janvier', 2 => 'Février', 3 => 'Mars', 4 => 'Avril', 5 => 'Mai', 6 => 'Juin', 7 => 'Juillet', 8 => 'Août', 9 => 'Septembre', 10 => 'Octobre', 11 => 'Novembre', 12 => 'Décembre'];
-    static $array_moismini = [1 => 'JAN', 2 => 'FEV', 3 => 'MAR', 4 => 'AVR', 5 => 'MAI', 6 => 'JUN', 7 => 'JUI', 8 => 'AOU', 9 => 'SEP', 10 => 'OCT', 11 => 'NOV', 12 => 'DEC'];
-    var $time = null;
-    var $adate = null;
+    public static $TIME2SEC = ['w' => 604800, 'd' => 86400, 'h' => 3600, 'm' => 60, 's' => 1];
+    public static $array_mois = [1 => 'Janvier', 2 => 'Février', 3 => 'Mars', 4 => 'Avril', 5 => 'Mai', 6 => 'Juin', 7 => 'Juillet', 8 => 'Août', 9 => 'Septembre', 10 => 'Octobre', 11 => 'Novembre', 12 => 'Décembre'];
+    public static $array_moismini = [1 => 'JAN', 2 => 'FEV', 3 => 'MAR', 4 => 'AVR', 5 => 'MAI', 6 => 'JUN', 7 => 'JUI', 8 => 'AOU', 9 => 'SEP', 10 => 'OCT', 11 => 'NOV', 12 => 'DEC'];
+    
+    private $time = null;
+    private $adate = null;
     
     
-    var $joursferies = null;
-    var $ts_easter = null;
-    var $flag_jours_ouvres = false;
+    private $joursferies = null;
+    private $ts_easter = null;
+    private $flag_jours_ouvres = false;
     
     /**
      * Constructeur
@@ -180,10 +181,9 @@ class Datetime
             return $this->set_date($date->format());
         } elseif (preg_match(self::REGEX_SQL, $date, $dateSplitted)) {
             if (\checkdate($dateSplitted['M'], $dateSplitted['D'], $dateSplitted['Y'])) {
-                
-                $h = (array_key_exists('h',$dateSplitted) && is_numeric($dateSplitted['h'])) ? $dateSplitted['h'] : 0;
-                $m = (array_key_exists('m',$dateSplitted) && is_numeric($dateSplitted['m'])) ? $dateSplitted['m'] : 0;
-                $s = (array_key_exists('s',$dateSplitted) && is_numeric($dateSplitted['s'])) ? $dateSplitted['s'] : 0;
+                $h = (array_key_exists('h', $dateSplitted) && is_numeric($dateSplitted['h'])) ? $dateSplitted['h'] : 0;
+                $m = (array_key_exists('m', $dateSplitted) && is_numeric($dateSplitted['m'])) ? $dateSplitted['m'] : 0;
+                $s = (array_key_exists('s', $dateSplitted) && is_numeric($dateSplitted['s'])) ? $dateSplitted['s'] : 0;
                 
                 $mkt = mktime($h, $m, $s, $dateSplitted['M'], $dateSplitted['D'], $dateSplitted['Y']);
                 $this->set_timestamp($mkt);
@@ -194,9 +194,9 @@ class Datetime
             }
         } elseif (preg_match(self::REGEX_STR, $date, $dateSplitted)) {
             if (\checkdate($dateSplitted['M'], $dateSplitted['D'], $dateSplitted['Y'])) {
-                $h = (array_key_exists('h',$dateSplitted) && is_numeric($dateSplitted['h'])) ? $dateSplitted['h'] : 0;
-                $m = (array_key_exists('m',$dateSplitted) && is_numeric($dateSplitted['m'])) ? $dateSplitted['m'] : 0;
-                $s = (array_key_exists('s',$dateSplitted) && is_numeric($dateSplitted['s'])) ? $dateSplitted['s'] : 0;
+                $h = (array_key_exists('h', $dateSplitted) && is_numeric($dateSplitted['h'])) ? $dateSplitted['h'] : 0;
+                $m = (array_key_exists('m', $dateSplitted) && is_numeric($dateSplitted['m'])) ? $dateSplitted['m'] : 0;
+                $s = (array_key_exists('s', $dateSplitted) && is_numeric($dateSplitted['s'])) ? $dateSplitted['s'] : 0;
                 
                 $mkt = mktime($h, $m, $s, $dateSplitted['M'], $dateSplitted['D'], $dateSplitted['Y']);
                 $this->set_timestamp($mkt);
@@ -754,8 +754,7 @@ class Datetime
             } else {
                 return false;
             }
-        }
-        else{
+        } else {
             return false;
         }
     }

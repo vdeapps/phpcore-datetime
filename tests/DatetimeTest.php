@@ -2,84 +2,171 @@
 
 namespace Tests\vdeApps\phpCore;
 
+use PHPTDD\BaseTestCase;
 use PHPUnit\Framework\TestCase;
 use vdeApps\phpCore\Datetime;
 
-class DatetimeTest extends TestCase
+class DatetimeTest extends BaseTestCase
 {
+    protected $ts = 0;
+    protected $sqldate = '2018-09-05';
+    protected $sqldatetime = '2018-09-05 10:12:30';
+    protected $strdatetime = '5/9/2018 10:12:30';
 
-    protected $aaaammjj='20180206';
-    protected $sqldate='2017-02-06';
-    protected $sqldate_samedi='2017-05-27';
-    protected $sqldate_14juillet='2018-07-14';
-    protected $sqldate_8mai='2018-05-08';
-    protected $bisextile='2016-01-03';
-    protected $nonbisextile='2017-01-03';
-    protected $jjmmaaaa='13/10/2017';
-    
-    protected $jjmmaaaahhmm='05/09/2018 10:12';
-    protected $ts = 1536135120;  //'05/09/2018 10:12'
-    
-    public function testConstruct(){
-        $o = new Datetime();
-    
-        // Test date du jour
-        $this->assertEquals(date('Y-m-d'), $o->format("%Y-%m-%d"));
-        
-        $o = new Datetime($this->ts);
-        $this->assertEquals('2018-09-05 10:12:00.0', $o->toSql());
-        
-        $o = new Datetime($this->sqldate);
-        $this->assertEquals('2017-02-06 00:00:00.0', $o->toSql());
+    protected $sqldate_samedi = '2017-05-27';
+    protected $sqldate_14juillet = '2018-07-14';
+    protected $sqldate_8mai = '2018-05-08';
+    protected $bisextile = '2016-01-03';
+    protected $nonbisextile = '2017-01-03';
+
+    /** @var Datetime $dt */
+    private $dt = null;
+
+    protected function setUp()
+    {
+        $this->dt = new Datetime();
     }
-    
-    public function testSetDate(){
-        
-        $o = Datetime::getInstance();
-        
-        $o->set_date($this->sqldate);
-        $this->assertEquals('2017-02-06 00:00:00.0', $o->toSql());
-    
-        $o->set_date($this->jjmmaaaahhmm);
-        $this->assertEquals('2018-09-05 10:12:00.0', $o->toSql());
-    
-        $o->set_date($this->ts);
-        $this->assertEquals('2018-09-05 10:12:00.0', $o->toSql());
-    
-        $o->set_date($this->bisextile);
-        $this->assertEquals(true, $o->est_bissextile());
-    
-        $o->set_date($this->nonbisextile);
-        $this->assertEquals(false, $o->est_bissextile());
-        
-        
-        $o->set_date($this->sqldate);
-        $this->assertEquals(2017, $o->get_year());
-        $this->assertEquals(2, $o->get_month());
-        $this->assertEquals('02', $o->get_month());
-        $this->assertEquals(6, $o->get_day());
-        $this->assertEquals('06', $o->get_day());
-    
-        $this->assertEquals(6, $o->get_week());
-        $this->assertEquals('06', $o->get_week());
-     
-        
-        //Jour ouvré
-        $o->set_date($this->sqldate);
-        $this->assertEquals(true, $o->est_jours_ouvres());
-        
-        $o->set_date($this->sqldate_samedi);
-        $this->assertEquals(false, $o->est_jours_ouvres());
-    
-        $o->set_date($this->sqldate_14juillet);
-        $this->assertEquals(false, $o->est_jours_ouvres());
-    
-        $o->set_date($this->sqldate_8mai);
-        $this->assertEquals(false, $o->est_jours_ouvres());
-    
-        $o->set_date($this->sqldate_8mai);
-        $this->assertEquals(128, $o->get_dayofyear());
-    
-        $this->assertEquals('2018/S19', Datetime::date2sem($o));
+
+    public function testExistsClass()
+    {
+        $this->assertEquals('vdeApps\phpCore\Datetime', Datetime::class);
+    }
+
+    public function testCompareAAAAMMJJ()
+    {
+        $this->dt->set_date($this->sqldate);
+        $this->assertEquals('20180905', $this->dt->format('%Y%m%d'));
+    }
+    public function testCompareJJMMAAAA()
+    {
+        $this->dt->set_date('05/09/2018');
+        $this->assertEquals('20180905', $this->dt->format('%Y%m%d'));
+
+        $this->assertEquals('2018-09-05 00:00:00.0', $this->dt->toSql());
+    }
+
+    public function testCompareJMAAAA()
+    {
+        $this->dt->set_date('5/9/2018');
+        $this->assertEquals('20180905', $this->dt->format('%Y%m%d'));
+    }
+
+    public function testSetdateFormatFromAAAAMMJJHHMMSS()
+    {
+        $this->dt->set_date($this->sqldatetime);
+
+        $this->assertEquals('20180905', $this->dt->format('%Y%m%d'));
+
+        $this->assertEquals('2018-09-05', $this->dt->format('%Y-%m-%d'));
+
+        $this->assertEquals('10:12', $this->dt->format('%H:%M'));
+    }
+
+    public function testSetdateFormatFromJJMMAAAAHHMMSS()
+    {
+        $this->dt->set_date($this->strdatetime);
+
+        $this->assertEquals('20180905', $this->dt->format('%Y%m%d'));
+
+        $this->assertEquals('2018-09-05', $this->dt->format('%Y-%m-%d'));
+
+        $this->assertEquals('10:12', $this->dt->format('%H:%M'));
+    }
+
+    public function testSetdateFormatFromJMAAAAHHMMSS()
+    {
+        $this->dt->set_date('5/9/2018 10:12:30');
+
+        $this->assertEquals('20180905', $this->dt->format('%Y%m%d'));
+
+        $this->assertEquals('2018-09-05', $this->dt->format('%Y-%m-%d'));
+
+        $this->assertEquals('10:12', $this->dt->format('%H:%M'));
+
+        $this->assertEquals('2018-09-05 10:12:30.0', $this->dt->toSql());
+    }
+
+    public function testEstBisextile()
+    {
+        $this->dt->set_date('2016-01-03');
+        $this->assertEquals(true, $this->dt->est_bissextile());
+    }
+
+    public function testEstNonBisextile()
+    {
+        $this->dt->set_date('2017-01-03');
+        $this->assertEquals(false, $this->dt->est_bissextile());
+    }
+
+    public function testOnebyOne()
+    {
+        $this->dt->set_date($this->sqldatetime);
+
+        $this->assertEquals(2018, $this->dt->get_year());
+        $this->assertEquals(9, $this->dt->get_month());
+        $this->assertEquals('09', $this->dt->get_month());
+        $this->assertEquals(5, $this->dt->get_day());
+        $this->assertEquals('05', $this->dt->get_day());
+
+        $this->assertEquals(36, $this->dt->get_week());
+        $this->assertEquals('36', $this->dt->get_week());
+    }
+
+    public function testSemaine()
+    {
+        $this->assertEquals('2018/S36', Datetime::date2sem($this->strdatetime));
+    }
+
+    public function testJoursOuvres()
+    {
+        $this->dt->set_date($this->sqldatetime);
+        $this->assertEquals(true, $this->dt->est_jours_ouvres());
+
+        $this->dt->set_date($this->sqldate_samedi);
+        $this->assertEquals(false, $this->dt->est_jours_ouvres());
+
+        $this->dt->set_date($this->sqldate_14juillet);
+        $this->assertEquals(false, $this->dt->est_jours_ouvres());
+
+        $this->dt->set_date($this->sqldate_8mai);
+        $this->assertEquals(false, $this->dt->est_jours_ouvres());
+
+        $this->dt->set_date($this->sqldate_8mai);
+        $this->assertEquals(128, $this->dt->get_dayofyear());
+    }
+
+
+
+    public function testAdd5days()
+    {
+        $this->dt->set_date($this->sqldatetime);
+        $this->dt->add_days(5);
+
+        $this->assertEquals('2018-09-10', $this->dt->format('%Y-%m-%d'));
+    }
+
+    public function testAdd28days()
+    {
+        $this->dt->set_date($this->sqldatetime);
+        $this->dt->add_days(28);
+
+        $this->assertEquals('2018-10-03', $this->dt->format('%Y-%m-%d'));
+    }
+
+    public function testSub5days()
+    {
+        $this->dt->set_date($this->sqldatetime);
+        $this->dt->sub_days(5);
+
+        $this->assertEquals('2018-08-31', $this->dt->format('%Y-%m-%d'));
+    }
+
+    public function testAdd28daysOuvres()
+    {
+        $this->dt->set_date($this->sqldatetime);
+        $this->dt->set_jours_ouvres(true);
+        $this->dt->add_days(28);
+
+        $this->assertEquals('2018-10-15', $this->dt->format('%Y-%m-%d'));
     }
 }

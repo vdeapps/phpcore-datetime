@@ -22,7 +22,7 @@
         timeoutForLargeTests="60"
         verbose="false">
     <testsuites>
-        <testsuite name="Mes Tests">
+        <testsuite name="Tests">
             <directory>./tests</directory>
         </testsuite>
     </testsuites>
