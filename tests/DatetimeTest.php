@@ -169,4 +169,11 @@ class DatetimeTest extends BaseTestCase
 
         $this->assertEquals('2018-10-15', $this->dt->format('%Y-%m-%d'));
     }
+
+    public function testGetPeriode(){
+        $result = Datetime::getPeriode('2018-09-05','10/09/2019');
+
+        $this->assertContains(['lib','shortlib','start','end'], $result);
+//        var_dump($result);
+    }
 }
