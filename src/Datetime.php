@@ -9,6 +9,7 @@ class Datetime
 {
     const REGEX_SQL = "/(?<fulldate>(?<Y>\d{4})(-)*(?<M>\d{2})(-)*(?<D>\d{2}))(( ){1}(?<fulltime>(?<h>\d{2}):(?<m>\d{2})(:(?<s>\d{2})){0,1}(:(\d{2})){0,1})){0,1}/";
     const REGEX_STR = "/(?<fulldate>(?<D>\d{1,2})(\/)*(?<M>\d{1,2})(\/)*(?<Y>\d{4}))(( ){1}(?<fulltime>(?<h>\d{2}):(?<m>\d{2})(:(?<s>\d{2})){0,1}(:(\d{2})){0,1})){0,1}/";
+    const REGEX_SEM = "/(?<fulldate>(?<Y>\d{4})(\/S)(?<S>\d{2}))/";
     public static $longday = [
         'Monday'    => 'Lundi',
         'Tuesday'   => 'Mardi',
@@ -18,7 +19,7 @@ class Datetime
         'Saturday'  => 'Samedi',
         'Sunday'    => 'Dimanche',
     ];
-    public static $shortday = [
+    static $shortday = [
         'Monday'    => 'Lun',
         'Tuesday'   => 'Mar',
         'Wednesday' => 'Mer',
@@ -42,8 +43,8 @@ class Datetime
     
     private $time = null;
     private $adate = null;
-    
-    
+
+
     private $joursferies = null;
     private $ts_easter = null;
     private $flag_jours_ouvres = false;
@@ -206,7 +207,12 @@ class Datetime
                 return false;
             }
         }
-        
+        elseif (preg_match(self::REGEX_SEM, $date, $dateSplitted)) {
+            $dt = new \DateTime();
+            $dt->setISOdate($dateSplitted['Y'], $dateSplitted['S']);
+            return $this->set_date($dt->format('Y-m-d'));
+        }
+
         return false;
     }
     
@@ -754,7 +760,8 @@ class Datetime
             } else {
                 return false;
             }
-        } else {
+        }
+        else{
             return false;
         }
     }
@@ -940,5 +947,49 @@ class Datetime
         }
         
         return $j;
+    }
+
+
+    /**
+     * Retourne les dates d'une période et son libelle
+     * @param array which contains [periode | periode_d | periode_f]
+     *
+     * @return ChainedArray
+     * @throws \Exception
+     */
+    static public function getPeriode($request){
+        $periode_d = $request->getQueryParam('periode_d', date('%m/%Y'));
+        $periode_f = $request->getQueryParam('periode_f', date('%m/%Y'));
+        if ( ($periode=$request->getQueryParam('periode', false)) !== false ) {
+            $periode_d = $periode;
+            $periode_f = $periode;
+        }
+
+        $d_start = awcDatetime::getInstance('01/'.$periode_d);
+        $d_end = awcDatetime::getInstance('01/'.$periode_f);
+
+        /*
+         * Test si mois glissant
+         */
+        if ( $d_start->equals($d_end) === 0 && $glissant=$request->getQueryParam('glissant')){
+            $d_start->sub_month($glissant -1);
+        }
+
+        if ($d_start->equals($d_end) === 0){
+            $lib_periode = $d_start->format('%B %Y');
+            $shortlib_periode = $d_start->format('%b %Y');
+        }
+        else{
+            $lib_periode = $d_start->format('%B %Y') . ' - ' . $d_end->format('%B %Y');
+            $shortlib_periode = $d_start->format('%b %Y') . ' - ' . $d_end->format('%b %Y');
+        }
+
+        $result = ChainedArray::getInstance();
+        $result->lib = $lib_periode;
+        $result->shortlib = $shortlib_periode;
+        $result->start = $d_start;
+        $result->end = $d_end;
+
+        return $result;
     }
 }
