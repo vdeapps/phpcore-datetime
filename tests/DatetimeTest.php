@@ -2,11 +2,10 @@
 
 namespace Tests\vdeApps\phpCore;
 
-use PHPTDD\BaseTestCase;
 use PHPUnit\Framework\TestCase;
 use vdeApps\phpCore\Datetime;
 
-class DatetimeTest extends BaseTestCase
+class DatetimeTest extends TestCase
 {
     protected $ts = 0;
     protected $sqldate = '2018-09-05';
@@ -22,6 +21,9 @@ class DatetimeTest extends BaseTestCase
     /** @var Datetime $dt */
     private $dt = null;
 
+    /*
+     * Before each test
+     */
     protected function setUp()
     {
         $this->dt = new Datetime();
@@ -170,10 +172,35 @@ class DatetimeTest extends BaseTestCase
         $this->assertEquals('2018-10-15', $this->dt->format('%Y-%m-%d'));
     }
 
-    public function testGetPeriode(){
+    public function testGetPeriode()
+    {
         $result = Datetime::getPeriode('2018-09-05','10/09/2019');
+        $this->assertEquals(['lib','shortlib','start','end'], array_keys($result));
+    }
 
-        $this->assertContains(['lib','shortlib','start','end'], $result);
-//        var_dump($result);
+    public function testJoursFeries(){
+        $this->dt->set_date('2018-12-25');
+        $this->assertTrue($this->dt->EstFerie());
+
+        $this->dt->set_date('2018-12-24');
+        $this->assertFalse($this->dt->EstFerie());
+    }
+    
+    /**
+     * Test les jours fériés
+     * @throws \Exception
+     */
+    public function testPaques(){
+        $this->dt->set_date("2019-04-22");
+        $this->assertTrue($this->dt->EstFerie());
+
+        $this->dt->set_date('2020-04-12');
+        $this->assertFalse($this->dt->EstFerie());
+
+        $this->dt->set_date('2020-04-13');
+        $this->assertTrue($this->dt->EstFerie());
+
+        $this->dt->set_date('2021-04-05');
+        $this->assertTrue($this->dt->EstFerie());
     }
 }

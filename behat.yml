@@ -1,0 +1,12 @@
+default:
+    formatters:
+        pretty: true
+
+    suites:
+
+        core:
+            contexts: [FeatureContext, DatetimeContext]
+            filters: {tags: '@JoursFeries' }
+
+        default:
+            contexts: [FeatureContext]

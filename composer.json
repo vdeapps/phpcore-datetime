@@ -32,7 +32,8 @@
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "3.*",
-        "phpunit/phpunit": "^5.7"
+        "phpunit/phpunit": "^5.7",
+        "behat/behat": "^3.5"
     },
     "suggest": {},
     "autoload": {
@@ -49,6 +50,7 @@
     "scripts": {
         "cs-fix": "php-cs-fixer fix . --fixers=-psr0",
         "phpcs": "vendor/squizlabs/php_codesniffer/bin/phpcs src",
-        "phpcbf": "vendor/squizlabs/php_codesniffer/bin/phpcbf src"
+        "phpcbf": "vendor/squizlabs/php_codesniffer/bin/phpcbf src",
+        "phpunit" : "vendor/phpunit/phpunit/phpunit --configuration tests/unit/phpunit.xml tests"
     }
 }
