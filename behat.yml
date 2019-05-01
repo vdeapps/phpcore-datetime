@@ -6,7 +6,7 @@ default:
 
         core:
             contexts: [FeatureContext, DatetimeContext]
-            filters: {tags: '@JoursFeries' }
+            filters: {tags: "@JoursFeries" }
 
         default:
-            contexts: [FeatureContext]
+            contexts: [FeatureContext, DatetimeContext]
